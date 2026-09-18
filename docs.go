@@ -1,0 +1,130 @@
+package main
+
+// fun docs：拉起 API 文档站——侧栏服务/方法树、DTO 参数表单、
+// 一键发送打到反向代理的后端，流式方法实时展示 NDJSON 行
+
+import (
+	"embed"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+)
+
+//go:embed docsui/index.html
+var docsFS embed.FS
+
+func cmdDocs(args []string) {
+	fs := flag.NewFlagSet("docs", flag.ExitOnError)
+	addr := fs.String("addr", "127.0.0.1:7788", "文档站监听地址")
+	upstream := fs.String("upstream", "http://127.0.0.1:8080", "后端服务地址（反向代理目标）")
+	from := fs.String("from", "", "从元数据 JSON 文件读取")
+	pkg := fs.String("p", ".", "业务 main 包路径（用于采集元数据与自动启动后端）")
+	noStart := fs.Bool("no-run", false, "不自动启动后端（后端已在别处运行时使用）")
+	fs.Parse(args)
+
+	var meta *FunMeta
+	var err error
+	if *from != "" {
+		meta, err = loadMeta(*from)
+	} else {
+		var root string
+		root, err = findModuleRoot(*pkg)
+		if err == nil {
+			genDir, _ := os.MkdirTemp("", "fun-docs-gen-*")
+			defer os.RemoveAll(genDir)
+			err = runFunGen(root, "ts", genDir)
+			if err == nil {
+				meta, err = parseTsDir(filepath.Join(genDir, "ts"))
+			}
+		}
+	}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "fun: 采集元数据失败:", err)
+		os.Exit(1)
+	}
+	if len(meta.Services) == 0 {
+		fmt.Fprintln(os.Stderr, "fun: 元数据中没有服务，请先 BindService")
+		os.Exit(1)
+	}
+
+	// 自动起后端：FUN_DUMP 采集进程已退出，这里再起一个常驻的
+	var backend *exec.Cmd
+	if !*noStart {
+		backend = goCommand("run", *pkg)
+		backend.Stdout, backend.Stderr = os.Stdout, os.Stderr
+		// 独立进程组：go run 的孙进程（真正的服务）随 CLI 一起被杀干净
+		backend.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+		if err := backend.Start(); err != nil {
+			fmt.Fprintln(os.Stderr, "fun: 启动后端失败:", err)
+			os.Exit(1)
+		}
+	}
+
+	target, err := url.Parse(*upstream)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "fun: upstream 地址无效:", err)
+		killChild(backend, nil)
+		os.Exit(1)
+	}
+	proxy := httputil.NewSingleHostReverseProxy(target)
+
+	metaJSON := renderMetaJSON(meta)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/", "/index.html":
+			data, _ := docsFS.ReadFile("docsui/index.html")
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Write(data)
+		case "/fun-meta.json":
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write(metaJSON)
+		default:
+			proxy.ServeHTTP(w, r)
+		}
+	})
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		killChild(backend, nil)
+		os.Exit(0)
+	}()
+
+	nMethods := 0
+	for _, svc := range meta.Services {
+		nMethods += len(svc.Methods)
+	}
+	fmt.Printf(`
+  fun docs 已启动
+  ─────────────────────────────────────────
+  文档站:   http://%s
+  后端代理: %s → %s
+  ─────────────────────────────────────────
+  %d 个服务 / %d 个方法。Ctrl+C 退出（连同自动拉起的后端）
+`, *addr, *upstream, *upstream, len(meta.Services), nMethods)
+
+	if err := http.ListenAndServe(*addr, mux); err != nil {
+		fmt.Fprintln(os.Stderr, "fun: 文档站启动失败:", err)
+		killChild(backend, nil)
+		os.Exit(1)
+	}
+}
+
+func renderMetaJSON(meta *FunMeta) []byte {
+	data, err := json.Marshal(meta)
+	if err != nil {
+		return []byte(`{"services":[]}`)
+	}
+	return data
+}

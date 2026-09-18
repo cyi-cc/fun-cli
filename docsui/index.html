@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fun docs</title>
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f6f8fa;--line:#d8dee4;
+  --fg:#1f2328;--fg2:#636c76;--fg3:#8b949e;
+  --acc:#0969da;--accbg:#ddf4ff;
+  --ok:#1a7f37;--okbg:#dafbe1;--err:#cf222e;--errbg:#ffebe9;
+  --stream:#9a6700;--streambg:#fff8c5;
+  --code:#24292f;
+  --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.65 -apple-system,'Segoe UI',system-ui,'PingFang SC','Microsoft YaHei',sans-serif;display:flex;flex-direction:column;overflow:hidden}
+/* 顶栏 */
+header{display:flex;align-items:center;gap:10px;padding:9px 20px;background:var(--bg2);border-bottom:1px solid var(--line);flex-shrink:0}
+header .logo{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--fg)}
+header .logo b{color:var(--acc)}
+header .meta{color:var(--fg2);font-size:12.5px}
+header .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+#layout{flex:1;display:flex;min-height:0}
+/* 侧栏 */
+aside{width:280px;min-width:280px;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg)}
+#search{margin:12px 14px 6px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;outline:none;background:var(--bg)}
+#search:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+#tree{flex:1;overflow-y:auto;padding:2px 8px 16px}
+.svc{margin:14px 8px 4px;font-size:11.5px;color:var(--fg2);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.mth{display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:6px;cursor:pointer;font-size:13.5px;color:var(--fg)}
+.mth:hover{background:var(--bg2)}
+.mth.on{background:var(--accbg);color:var(--fg)}
+.mth.on::before{content:'';display:inline-block;width:3px;height:14px;background:var(--acc);border-radius:2px;margin-right:2px}
+.mth .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mth.on .nm{font-weight:600}
+.badge{font-size:10px;padding:1px 6px;border-radius:10px;font-family:var(--mono);border:1px solid}
+.b-stream{color:var(--stream);border-color:var(--streambg);background:var(--streambg)}
+.b-void{color:var(--fg2);background:var(--bg2);border-color:var(--line)}
+/* 正文 */
+main{flex:1;overflow-y:auto;padding:26px 34px 60px}
+.doc{max-width:860px}
+h1{font-size:24px;font-weight:600;letter-spacing:-.01em;font-family:var(--mono);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:500;padding:2px 9px;border-radius:10px;font-family:var(--mono)}
+.t-stream{color:var(--stream);background:var(--streambg)}
+.t-void{color:var(--fg2);background:var(--bg2);border:1px solid var(--line)}
+.sig{margin:8px 0 4px;color:var(--fg2);font-size:13px;font-family:var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+.sig b{color:var(--acc);font-weight:600}
+h2{font-size:17px;font-weight:600;margin:26px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+h2 .sub{font-weight:400;color:var(--fg2);font-size:12.5px;margin-left:8px}
+/* 参数表 */
+table.params{width:100%;border-collapse:collapse;font-size:13px}
+table.params th{text-align:left;color:var(--fg2);font-weight:600;font-size:12px;padding:6px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+table.params td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.params tr:last-child td{border-bottom:none}
+table.params td.name{font-family:var(--mono);white-space:nowrap}
+table.params td.type{font-family:var(--mono);color:var(--fg2);white-space:nowrap}
+table.params td.name .req{color:var(--err);font-weight:700}
+table.params td.name .opt{color:var(--fg3);font-size:11px}
+input[type=text],textarea,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--fg);padding:5px 9px;font-size:13px;font-family:var(--mono);outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+textarea{min-height:60px;resize:vertical}
+input[type=checkbox]{accent-color:var(--acc);width:14px;height:14px}
+.nest{border-left:2px solid var(--line);margin:6px 0 2px;padding-left:14px}
+.subhdr{font-family:var(--mono);font-size:12px;color:var(--fg2);margin:10px 0 4px}
+/* state */
+/* 发送 */
+#sendBar{display:flex;gap:10px;align-items:center;margin:4px 0 4px}
+#send{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:14px;font-weight:600;cursor:pointer}
+#send:hover{background:#0860c4}
+#send:disabled{opacity:.55;cursor:wait}
+#send.stop{background:var(--err)}
+#copyReq{background:var(--bg);border:1px solid var(--line);color:var(--fg2);border-radius:6px;padding:7px 14px;cursor:pointer;font-size:13px}
+#copyReq:hover{border-color:var(--acc);color:var(--acc)}
+#sendHint{color:var(--fg2);font-size:12.5px}
+/* 请求/响应示例块 */
+.block{border:1px solid var(--line);border-radius:8px;margin-top:8px;overflow:hidden}
+.block .bhead{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--bg2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--fg2)}
+.chip{padding:1px 9px;border-radius:10px;font-weight:500}
+.c-ok{color:var(--ok);background:var(--okbg)}
+.c-err{color:var(--err);background:var(--errbg)}
+.c-info{color:var(--acc);background:var(--accbg)}
+#stateRows .srow{display:grid;grid-template-columns:1fr 1.4fr 30px;gap:8px;margin-bottom:6px;max-width:560px}
+#stateRows .srow button{background:none;border:none;color:var(--fg3);cursor:pointer;font-size:15px}
+#stateRows .srow button:hover{color:var(--err)}
+#addState{background:var(--bg);border:1px dashed var(--line);color:var(--fg2);border-radius:6px;padding:3px 12px;cursor:pointer;font-size:12.5px}
+#addState:hover{border-color:var(--acc);color:var(--acc)}
+textarea.body{width:100%;border:none;outline:none;background:var(--bg);padding:14px 16px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow:auto;max-height:50vh;white-space:pre;resize:vertical;color:var(--code);display:block}
+pre.body{padding:14px 16px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow:auto;max-height:50vh;white-space:pre-wrap;word-break:break-all;color:var(--code)}
+.empty{color:var(--fg3);font-size:12.5px;font-family:var(--mono)}
+.note{color:var(--fg2);font-size:12.5px;margin-top:6px}
+.note code,td.hint code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:11.5px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#c9d1d9;border-radius:5px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#afb8c1}
+#empty{color:var(--fg3);margin-top:20vh;text-align:center;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">fun<b>·docs</b></span>
+  <span class="dot" id="live"></span>
+  <span class="meta" id="hmeta">加载中…</span>
+</header>
+<div id="layout">
+  <aside>
+    <input id="search" placeholder="搜索服务或方法…" autofocus>
+    <div id="tree"></div>
+  </aside>
+  <main id="main"><div id="empty">在左侧选择一个方法查看文档</div></main>
+</div>
+<script>
+let META=null, CUR=null, ABORT=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+fetch('/fun-meta.json').then(r=>r.json()).then(m=>{
+  META=m;
+  const nS=m.services.length;let nM=0;m.services.forEach(s=>nM+=s.methods.length);
+  $('#hmeta').textContent=`${nS} 个服务 · ${nM} 个方法`;
+  renderTree('');
+}).catch(e=>{$('#hmeta').textContent='元数据加载失败: '+e.message;$('#live').style.background='var(--err)'});
+
+$('#search').addEventListener('input',e=>renderTree(e.target.value));
+
+function renderTree(q){
+  q=(q||'').toLowerCase();
+  const t=$('#tree');t.innerHTML='';
+  META.services.forEach(svc=>{
+    const ms=svc.methods.filter(m=>!q||m.name.toLowerCase().includes(q)||svc.name.toLowerCase().includes(q));
+    if(!ms.length)return;
+    const h=document.createElement('div');h.className='svc';h.textContent=svc.name;t.appendChild(h);
+    ms.forEach(m=>{
+      const d=document.createElement('div');d.className='mth';
+      d.innerHTML=`<span class="nm">${esc(m.name)}</span>`+
+        (m.isStream?'<span class="badge b-stream">stream</span>':'')+
+        (m.void?'<span class="badge b-void">void</span>':'');
+      d.onclick=()=>{document.querySelectorAll('.mth').forEach(x=>x.classList.remove('on'));d.classList.add('on');showMethod(svc,m)};
+      t.appendChild(d);
+    });
+  });
+}
+
+function typeLabel(t){
+  if(!t)return '—';
+  if(t.kind==='struct'||t.kind==='enum')return t.name+(t.optional?'?':'');
+  if(t.kind==='slice')return typeLabel(t.elem)+'[]';
+  return (t.optional?t.name+'?':t.name);
+}
+
+function showMethod(svc,m){
+  CUR={svc,m};reqDirty=false;ABORT&&ABORT.abort();ABORT=null;
+  const badges=(m.isStream?'<span class="tag t-stream">NDJSON 流式</span>':'')+(m.void?'<span class="tag t-void">无返回值</span>':'');
+  const retLine = m.isStream
+    ? (m.returns?`首条消息 <b>${esc(typeLabel(m.returns))}</b>，其后逐行推送 NDJSON`:`持续推送 NDJSON 行`)
+    : (m.void?`无数据返回，仅 <b>result.void</b>`:(m.returns?`<b>${esc(typeLabel(m.returns))}</b>`:''));
+  const dtoName = m.dto?esc(m.dto.name):'无';
+  $('#main').innerHTML=`<div class="doc">
+    <h1>${esc(svc.name)}.${esc(m.name)} ${badges}</h1>
+    <div class="sig"><b>POST</b> /cell · serviceName=<b>${esc(svc.name)}</b> · methodName=<b>${esc(m.name)}</b></div>
+    <div class="note">返回：${retLine} · 请求 DTO：${dtoName}${m.dto&&m.dto.fields?'':'（该方法不接收参数）'}</div>
+
+    ${m.dto?`
+    <h2>请求参数<span class="sub">${esc(m.dto.name)}</span></h2>
+    ${paramsTable(m.dto,[])}
+    <div class="note">带 <code>*</code> 为必填；指针/切片字段可留空省略；切片按 JSON 数组填写。字段名以小写开头随请求传输。</div>
+    `:''}
+
+    <h2>State<span class="sub">随请求携带 · Guard 可读 · 存于 localStorage</span></h2>
+    <div id="stateRows"></div>
+    <button id="addState">+ 添加字段</button>
+
+    <h2>试一下<span class="sub">填好参数点发送，请求与响应都会展示在下方</span></h2>
+    <div id="sendBar">
+      <button id="send">发送请求</button>
+      <button id="copyReq">复制请求 JSON</button>
+      <span id="sendHint"></span>
+    </div>
+
+    <h2>请求<span class="sub">表单填充自动生成，可直接编辑后发送</span></h2>
+    <div class="note" style="margin:0 0 8px">请求体即发送到 <code>POST /cell</code> 的 JSON，State 值由上方字段注入，也可手动编辑后发送。</div>
+    <div class="block"><div class="bhead" id="reqHead"><span class="chip c-info">表单生成</span><button id="resetReq" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:5px;color:var(--fg2);font-size:11px;padding:1px 8px;cursor:pointer;display:none">按表单重置</button></div><textarea class="body edit" id="reqBody" spellcheck="false"></textarea></div>
+
+    <h2>响应</h2>
+    <div class="block"><div class="bhead" id="respHead"><span class="chip c-info">未发送</span></div><pre class="body" id="respBody"><span class="empty">发送后在此展示格式化的响应${m.isStream?'（流式方法逐行追加）':''}</span></pre></div>
+  </div>`;
+  $('#addState').onclick=()=>addStateRow('','');
+  const st=JSON.parse(localStorage.getItem('fun-docs-state')||'{}');
+  Object.entries(st).forEach(([k,v])=>addStateRow(k,v));
+  $('#send').onclick=send;
+  $('#copyReq').onclick=copyReq;
+  // 表单一变就同步请求体（手动编辑过则不动，可点"按表单重置"恢复）
+  document.querySelectorAll('#main input,#main select').forEach(el=>{
+    el.addEventListener('input',previewRequest);el.addEventListener('change',previewRequest);
+  });
+
+  document.querySelectorAll('#main textarea[data-t]').forEach(el=>{
+    el.addEventListener('input',previewRequest);el.addEventListener('change',previewRequest);
+  });
+  $('#reqBody').addEventListener('input',()=>{
+    reqDirty=true;
+    $('#reqHead').querySelector('.chip').textContent='手动编辑';
+    $('#resetReq').style.display='';
+  });
+  $('#resetReq').onclick=()=>{reqDirty=false;$('#resetReq').style.display='none';$('#reqHead').querySelector('.chip').textContent='表单生成';previewRequest();};
+  previewRequest();
+}
+
+/* ---------- 参数表 ---------- */
+function paramsTable(t,path){
+  let h=`<table class="params"><tr><th style="width:190px">字段</th><th style="width:130px">类型</th><th style="width:270px">示例值</th><th>说明</th></tr>`;
+  h+=paramRows(t,path);
+  return h+'</table>';
+}
+function paramRows(t,path){
+  let h='';
+  t.fields.forEach(f=>{
+    const p=[...path,f.name];
+    const id='f-'+p.join('.');
+    const req=!f.type.optional&&f.type.kind!=='slice';
+    h+=`<tr><td class="name">${esc(firstLower(f.name))}${f.type.optional?'<span class="opt"> 可空</span>':'<span class="req">*</span>'}</td><td class="type">${esc(typeLabel(f.type))}</td>`;
+    h+=`<td>${controlHTML(f.type,id)}</td>`;
+    h+=`<td class="hint" style="color:var(--fg2);font-size:12.5px">${hintFor(f.type)}</td></tr>`;
+    if(f.type.kind==='struct')h+=`<tr><td colspan="4"><div class="nest"><div class="subhdr">${esc(f.type.name)} 字段：</div>${paramsTable(f.type,p)}</div></td></tr>`;
+  });
+  return h;
+}
+function hintFor(t){
+  switch(t.kind){
+    case 'int':return '定宽整数，<code>int64</code> 全链路精度';
+    case 'enum':return '枚举序号：'+(t.names||[]).map((n,i)=>(t.displayNames&&t.displayNames[i]?t.displayNames[i]:n)+'='+i).join(' · ');
+    case 'slice':return 'JSON 数组，如 <code>["a","b"]</code>';
+    case 'struct':return '嵌套对象';
+    case 'bool':return 'true / false';
+    default:return '';
+  }
+}
+function controlHTML(t,id){
+  if(t.optional){
+    return `<div style="display:flex;gap:7px;align-items:center"><input type="checkbox" class="prov" data-for="${id}" title="勾选后提供该字段"><div style="flex:1" data-prov="${id}" data-dis>${innerControl(t,id)}</div></div>`;
+  }
+  return innerControl(t,id);
+}
+function innerControl(t,id){
+  switch(t.kind){
+    case 'string':return `<input type="text" id="${id}" data-t="string">`;
+    case 'int':return `<input type="text" id="${id}" data-t="int" inputmode="numeric" placeholder="0">`;
+    case 'bool':return `<select id="${id}" data-t="bool"><option value=""></option><option>true</option><option>false</option></select>`;
+    case 'enum':{
+      let h=`<select id="${id}" data-t="enum"><option value=""></option>`;
+      (t.names||[]).forEach((n,i)=>h+=`<option value="${i}">${esc((t.displayNames&&t.displayNames[i])?t.displayNames[i]+' ('+n+')':n)}</option>`);
+      return h+'</select>';
+    }
+    case 'slice':return `<textarea id="${id}" data-t="slice" placeholder='["a","b"] 或 [{...}]'></textarea>`;
+    default:return `<input type="text" id="${id}" data-t="string">`;
+  }
+}
+const firstLower=s=>s?s[0].toLowerCase()+s.slice(1):s;
+
+// 指针字段勾选联动
+document.addEventListener('change',e=>{
+  if(e.target.classList&&e.target.classList.contains('prov')){
+    const wrap=document.querySelector(`[data-prov="${e.target.dataset.for}"]`);
+    if(wrap){const el=wrap.querySelector('input,textarea,select');if(el)el.disabled=!e.target.checked}
+  }
+});
+
+/* ---------- 取值 ---------- */
+function collectStruct(t,path,obj,errors){
+  t.fields.forEach(f=>{
+    const p=[...path,f.name];
+    const id='f-'+p.join('.');
+    const key=firstLower(f.name);
+    let el=document.getElementById(id);
+    let provided=true;
+    if(f.type.optional){
+      const cb=document.querySelector(`.prov[data-for="${id}"]`);
+      provided=cb&&cb.checked;
+    }
+    if(!provided)return;
+    if(!el)return;
+    const v=el.value!=null?el.value.trim():'';
+    const kind=f.type.kind;
+    if(kind==='struct'){obj[key]=collectStruct(f.type,p,{},errors);return}
+    if(v===''){
+      const req=!f.type.optional&&kind!=='slice'&&kind!=='bool'&&kind!=='enum';
+      if(req)errors.push(`缺少必填字段: ${p.join('.')}`);
+      return;
+    }
+    switch(kind){
+      case 'int':{
+        const n=Number(v);
+        if(!Number.isFinite(n)||!Number.isInteger(n)){errors.push(`${p.join('.')} 不是整数`);return}
+        obj[key]=n;break;
+      }
+      case 'bool':obj[key]=v==='true';break;
+      case 'enum':obj[key]=Number(v);break;
+      case 'slice':{
+        try{obj[key]=JSON.parse(v)}catch{errors.push(`${p.join('.')} 不是合法 JSON 数组`)}
+        break;
+      }
+      default:obj[key]=v;
+    }
+  });
+  return obj;
+}
+let reqDirty=false;
+function buildRequest(){
+  const errors=[];
+  const body={serviceName:CUR.svc.name,methodName:CUR.m.name};
+  if(CUR.m.dto)body.data=collectStruct(CUR.m.dto,[],{},errors);
+  const state={};
+  document.querySelectorAll('#stateRows .srow').forEach(r=>{
+    const k=r.querySelector('[data-sk]').value.trim(),v=r.querySelector('[data-sv]').value;
+    if(k)state[k]=v;
+  });
+  if(Object.keys(state).length)body.state=state;
+  localStorage.setItem('fun-docs-state',JSON.stringify(state));
+  return {body,errors};
+}
+function addStateRow(k,v){
+  const d=document.createElement('div');d.className='srow';
+  d.innerHTML=`<input type="text" placeholder="key（如 token）" data-sk value="${esc(k)}"><input type="text" placeholder="value" data-sv value="${esc(v)}"><button title="删除">×</button>`;
+  d.querySelector('button').onclick=()=>d.remove();
+  $('#stateRows').appendChild(d);
+  d.querySelectorAll('input').forEach(i=>i.addEventListener('input',previewRequest));
+}
+function previewRequest(){
+  if(!CUR||reqDirty)return;
+  const {body,errors}=buildRequest();
+  const pre=$('#reqBody');if(!pre)return;
+  if(errors.length){pre.value=JSON.stringify({serviceName:CUR.svc.name,methodName:CUR.m.name},null,2);return}
+  pre.value=pretty(JSON.stringify(body));
+}
+function requestBody(){
+  const raw=$('#reqBody').value.trim();
+  try{return{ok:JSON.parse(raw)}}catch(e){return{ok:null,err:e.message}}
+}
+function copyReq(){
+  const raw=$('#reqBody').value.trim();
+  try{JSON.parse(raw);navigator.clipboard.writeText(JSON.stringify(JSON.parse(raw),null,2))}
+  catch{navigator.clipboard.writeText(raw)}
+  $('#sendHint').textContent='已复制';
+  setTimeout(()=>$('#sendHint').textContent='',1500);
+}
+
+/* ---------- 发送 ---------- */
+async function send(){
+  if(ABORT){ABORT.abort();return}
+  const parsed=requestBody();
+  if(!parsed.ok){
+    $('#reqHead').innerHTML='<span class="chip c-err">请求 JSON 无效</span>';
+    $('#respBody').innerHTML=`<span style="color:var(--err)">${esc(parsed.err)}</span>`;
+    return;
+  }
+  const body=parsed.ok;
+  try{$('#reqBody').value=pretty(JSON.stringify(body))}catch{}
+  $('#reqHead').innerHTML='<span class="chip c-info">POST /cell</span>';
+  const btn=$('#send');btn.disabled=true;
+  const t0=performance.now();
+  $('#respHead').innerHTML='<span class="chip c-info">发送中…</span>';
+  $('#respBody').innerHTML='<span class="empty">等待响应…</span>';
+  ABORT=new AbortController();
+  try{
+    const res=await fetch('/cell',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ABORT.signal});
+    const ms=Math.round(performance.now()-t0);
+    if(CUR.m.isStream){
+      btn.textContent='停止';btn.classList.add('stop');btn.disabled=false;
+      await readStream(res,ms);
+    }else{
+      const text=await res.text();
+      $('#respHead').innerHTML=statusChip(res.status,ms,res.headers.get('content-type'));
+      $('#respBody').textContent=text?pretty(text):'(空响应体)';
+    }
+  }catch(e){
+    if(e.name==='AbortError')$('#respHead').innerHTML='<span class="chip c-err">已取消</span>';
+    else $('#respHead').innerHTML='<span class="chip c-err">请求失败</span>';
+    $('#respBody').textContent=String(e.message||e);
+  }finally{
+    ABORT=null;btn.textContent='发送请求';btn.classList.remove('stop');btn.disabled=false;
+  }
+}
+async function readStream(res,ms){
+  $('#respHead').innerHTML=statusChip(res.status,ms,'application/x-ndjson');
+  const pre=$('#respBody');pre.textContent='';
+  if(!res.ok||!(res.headers.get('content-type')||'').includes('ndjson')){
+    pre.textContent=pretty(await res.text());return;
+  }
+  const reader=res.body.getReader(),dec=new TextDecoder();
+  let buf='',lines=0;
+  while(true){
+    if(!ABORT)break;
+    const {done,value}=await reader.read();
+    if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    let i;
+    while((i=buf.indexOf('\n'))>=0){
+      const line=buf.slice(0,i).trim();buf=buf.slice(i+1);
+      if(!line)continue;
+      lines++;pre.textContent+=pretty(line)+'\n';
+      if(lines>800)pre.textContent='（超出 800 行，已截断）\n'+pre.textContent.split('\n').slice(-800).join('\n');
+      pre.scrollTop=pre.scrollHeight;
+      $('#respHead').lastChild&&$('#respHead').lastChild.remove();
+      $('#respHead').insertAdjacentHTML('beforeend',`<span class="chip c-ok">流式 · ${lines} 行</span>`);
+    }
+  }
+  $('#respHead').insertAdjacentHTML('beforeend','<span class="chip c-info">流结束</span>');
+}
+function statusChip(status,ms,ct){
+  const ok=status>=200&&status<300;
+  return `<span class="chip ${ok?'c-ok':'c-err'}">HTTP ${status}</span><span class="chip c-info">${ms} ms</span>`+(ct?`<span class="chip c-info">${esc(ct.split(';')[0])}</span>`:'');
+}
+function pretty(text){
+  try{return JSON.stringify(JSON.parse(text),null,2)}catch{return text}
+}
+</script>
+</body>
+</html>
