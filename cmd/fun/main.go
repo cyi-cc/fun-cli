@@ -2,6 +2,7 @@ package main
 
 // fun-cli：fun 框架的配套命令行工具
 //
+//	fun new          脚手架：生成可运行的 fun 项目骨架
 //	fun gen [ts|go]  生成 TypeScript / Go 客户端
 //	fun run          热更新开发循环
 //	fun docs         拉起 API 文档站（参数表单 + 在线发送测试）
@@ -16,6 +17,9 @@ const version = "1.4.1"
 const usage = `fun-cli ` + version + ` — fun 框架配套工具
 
 用法:
+  fun new <项目名|模块路径> [-port 端口]
+      脚手架：生成 go.mod + 示例服务 + README，go mod tidy 后即可 go run。
+
   fun gen [ts|go] [-o 目录] [-p 模块路径] [-from meta.json]
       生成客户端代码（fun 核心直接产出，与内置 GenCode 完全一致）。
       扫描模块内 BindService/BindServiceForGen 调用，在对应包目录临时
@@ -30,6 +34,7 @@ const usage = `fun-cli ` + version + ` — fun 框架配套工具
       流式方法实时展示 NDJSON 行。默认自动 go run 拉起后端并反向代理 /cell。
 
 示例:
+  fun new myapp
   fun gen ts -o frontend/src/api
   fun run -p ./cmd/server
   fun docs -upstream http://127.0.0.1:9000 -p .
@@ -44,6 +49,8 @@ func main() {
 		os.Exit(2)
 	}
 	switch os.Args[1] {
+	case "new":
+		cmdNew(os.Args[2:])
 	case "gen":
 		cmdGen(os.Args[2:])
 	case "run":

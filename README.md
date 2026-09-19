@@ -17,7 +17,19 @@ fun 的服务注册全在 `BindService`/`BindServiceForGen` 调用里。fun-cli 
 (服务定义在 `package main` 也不怕)——执行后立即删除。生成由 fun 公开的
 `BindServiceForGen + SetOutput + GenCode` 完成，产物与内置生成器完全一致。
 
-## 三个命令
+## 四个命令
+
+### fun new —— 项目脚手架
+
+```bash
+fun new myapp                              # 生成 go.mod + hello world 服务
+fun new github.com/me/myapp               # 模块路径形式，目录取末段
+fun new myapp -local ../fun               # replace 指向本地 fun 源码（离线/未发布）
+fun new myapp -port 9000                  # 指定示例服务端口（默认 18080）
+```
+
+生成 `go.mod`、`main.go`（HelloSvc.Say 示例）、`README.md`、`.gitignore`，
+自动 `go mod tidy` 后即可 `go run .` 启动。
 
 ### fun gen —— 生成客户端代码
 
