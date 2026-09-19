@@ -6,7 +6,7 @@
 ## 安装
 
 ```bash
-go install github.com/cyi-cc/fun-cli@latest
+go install github.com/cyi-cc/fun-cli/cmd/fun@latest
 ```
 
 ## 工作原理(为什么 fun 可以零改动)
