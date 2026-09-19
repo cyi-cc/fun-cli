@@ -135,6 +135,10 @@ func snapshot(root string) map[string]int64 {
 		}
 		ext := filepath.Ext(name)
 		if ext == ".go" || name == "go.mod" || name == "go.sum" {
+			// 元数据采集的临时辅助文件在模块内一闪而过，忽略避免自触发
+			if name == helperTestFile {
+				return nil
+			}
 			if info, err := d.Info(); err == nil {
 				out[path] = info.ModTime().UnixNano()
 			}

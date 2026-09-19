@@ -243,6 +243,21 @@ Promise.all([
   selectFromHash();
 }).catch(e=>{const h=$('#hmeta');h.textContent='元数据加载失败: '+e.message;h.style.color='var(--err)';$('#live').style.background='var(--err)'});
 
+/* 热更新：源码变更触发后端重建+元数据刷新后，文档页自动重载；
+   正在输入时推迟一轮，避免打断编辑（防抖保存会先把备注落盘） */
+let DOC_V=null;
+setInterval(async()=>{
+  try{
+    const r=await fetch('/fun-version').then(r=>r.json());
+    if(DOC_V===null){DOC_V=r.v;return}
+    if(r.v!==DOC_V){
+      const ae=document.activeElement;
+      if(ae&&/INPUT|TEXTAREA/.test(ae.tagName))return;
+      location.reload();
+    }
+  }catch{}
+},1500);
+
 window.addEventListener('hashchange',selectFromHash);
 /* 深链：#Svc.Method 或 #Svc.Method?req=<base64url 请求体> */
 function selectFromHash(){

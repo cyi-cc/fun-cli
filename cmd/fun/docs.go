@@ -34,10 +34,10 @@ func cmdDocs(args []string) {
 
 	var meta *FunMeta
 	var err error
+	var root string
 	if *from != "" {
 		meta, err = loadMeta(*from)
 	} else {
-		var root string
 		root, err = findModuleRoot(*pkg)
 		if err == nil {
 			genDir, _ := os.MkdirTemp("", "fun-docs-gen-*")
@@ -57,17 +57,16 @@ func cmdDocs(args []string) {
 		os.Exit(1)
 	}
 
-	// 自动起后端：FUN_DUMP 采集进程已退出，这里再起一个常驻的
+	// 自动起后端：先编译成功再启动（与 fun run 同套语义，热更新复用）
+	binPath := filepath.Join(os.TempDir(), fmt.Sprintf("fun-docs-run-%d", os.Getpid()))
 	var backend *exec.Cmd
+	var backendDone chan struct{}
 	if !*noStart {
-		backend = goCommand("run", *pkg)
-		backend.Stdout, backend.Stderr = os.Stdout, os.Stderr
-		// 独立进程组：go run 的孙进程（真正的服务）随 CLI 一起被杀干净
-		backend.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-		if err := backend.Start(); err != nil {
-			fmt.Fprintln(os.Stderr, "fun: 启动后端失败:", err)
+		if !build(*pkg, binPath) {
+			fmt.Fprintln(os.Stderr, "fun: 后端编译失败")
 			os.Exit(1)
 		}
+		backend, backendDone = spawn(binPath, nil)
 	}
 
 	target, err := url.Parse(*upstream)
@@ -80,7 +79,47 @@ func cmdDocs(args []string) {
 
 	loadOrCreateEdits(*editsPath)
 
+	// 热更新：元数据与版本号会被 watcher 刷新，HTTP 读侧与写侧用同一把锁
+	var metaMu sync.RWMutex
 	metaJSON := renderMetaJSON(meta)
+	var metaVersion int64
+
+	// 监听源码变更：重采元数据 + 重建重启后端（-from 静态模式不启用）
+	if root != "" {
+		restart := make(chan struct{}, 1)
+		go watchLoop(root, restart)
+		go func() {
+			for range restart {
+				fmt.Println("fun: 检测到源码变更，重新采集元数据...")
+				genDir, _ := os.MkdirTemp("", "fun-docs-gen-*")
+				genErr := runFunGen(root, "ts", genDir)
+				var m *FunMeta
+				if genErr == nil {
+					m, genErr = parseTsDir(filepath.Join(genDir, "ts"))
+				}
+				os.RemoveAll(genDir)
+				if genErr != nil {
+					fmt.Fprintln(os.Stderr, "fun: 元数据刷新失败（保留旧文档）:", genErr)
+					continue
+				}
+				metaMu.Lock()
+				metaJSON = renderMetaJSON(m)
+				metaVersion++
+				metaMu.Unlock()
+				if *noStart {
+					fmt.Println("fun: 元数据已刷新（后端由外部管理）")
+					continue
+				}
+				if !build(*pkg, binPath) {
+					fmt.Fprintln(os.Stderr, "fun: 编译失败，旧后端继续运行")
+					continue
+				}
+				killChild(backend, backendDone)
+				backend, backendDone = spawn(binPath, nil)
+				fmt.Println("fun: 已重启后端并刷新文档元数据")
+			}
+		}()
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -90,8 +129,17 @@ func cmdDocs(args []string) {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.Write(data)
 		case "/fun-meta.json":
+			metaMu.RLock()
+			data := metaJSON
+			metaMu.RUnlock()
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			w.Write(metaJSON)
+			w.Write(data)
+		case "/fun-version":
+			metaMu.RLock()
+			v := metaVersion
+			metaMu.RUnlock()
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprintf(w, `{"v":%d}`, v)
 		case "/fun-docs-edits.json":
 			editsMu.RLock()
 			data, _ := json.Marshal(edits)
@@ -134,7 +182,7 @@ func cmdDocs(args []string) {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs
-		killChild(backend, nil)
+		killChild(backend, backendDone)
 		os.Exit(0)
 	}()
 
@@ -142,15 +190,20 @@ func cmdDocs(args []string) {
 	for _, svc := range meta.Services {
 		nMethods += len(svc.Methods)
 	}
+	hot := "关（-from 静态模式）"
+	if root != "" {
+		hot = "开（源码变更自动重建后端 + 刷新元数据）"
+	}
 	fmt.Printf(`
   fun docs 已启动
   ─────────────────────────────────────────
   文档站:   http://%s
   后端代理: %s → %s
   说明存档: %s
+  热更新:   %s
   ─────────────────────────────────────────
   %d 个服务 / %d 个方法。Ctrl+C 退出（连同自动拉起的后端）
-`, *addr, *upstream, *upstream, *editsPath, len(meta.Services), nMethods)
+`, *addr, *upstream, *upstream, *editsPath, hot, len(meta.Services), nMethods)
 
 	if err := http.ListenAndServe(*addr, mux); err != nil {
 		fmt.Fprintln(os.Stderr, "fun: 文档站启动失败:", err)
