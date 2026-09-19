@@ -27,9 +27,6 @@ header{display:flex;align-items:center;gap:10px;height:52px;padding:0 18px;backg
 header .logo{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:-.01em}
 header .logo b{color:var(--acc);font-weight:700}
 header .meta{color:var(--fg3);font-size:12.5px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);position:relative;flex-shrink:0}
-.dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--ok);opacity:0;animation:pulse 2.4s ease-out infinite}
-@keyframes pulse{0%{transform:scale(.4);opacity:.7}70%,100%{transform:scale(1.1);opacity:0}}
 .spacer{flex:1}
 
 #layout{flex:1;display:flex;min-height:0}
@@ -175,8 +172,7 @@ pre.body{padding:15px 17px;font-family:var(--mono);font-size:12.5px;line-height:
 </head>
 <body>
 <header>
-  <span class="logo">fun<b>·docs</b></span>
-  <span class="dot" id="live"></span>
+  <span class="logo">Fun <b>API Docs</b></span>
   <span class="meta" id="hmeta"></span>
   <span class="spacer"></span>
 </header>
@@ -241,7 +237,7 @@ Promise.all([
   META=m;EDITS=e||{};
   renderTree('');
   selectFromHash();
-}).catch(e=>{const h=$('#hmeta');h.textContent='元数据加载失败: '+e.message;h.style.color='var(--err)';$('#live').style.background='var(--err)'});
+}).catch(e=>{const h=$('#hmeta');h.textContent='元数据加载失败: '+e.message;h.style.color='var(--err)'});
 
 /* 热更新：源码变更触发后端重建+元数据刷新后，文档页自动重载；
    正在输入时推迟一轮，避免打断编辑（防抖保存会先把备注落盘） */
