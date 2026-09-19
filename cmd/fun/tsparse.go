@@ -18,8 +18,13 @@ var (
 	reInterface    = regexp.MustCompile(`(?s)export default interface (\w+) \{([^}]*)\}`)
 	reEnum         = regexp.MustCompile(`(?s)enum (\w+) \{([^}]*)\}`)
 	reEnumMember   = regexp.MustCompile(`(?m)^\s+(\w+),?\s*$`)
+	reDisplayNames = regexp.MustCompile(`(?s)function displayNames\(\):\s*string\[\]\s*\{(.*?)\}`)
+	reQuoted       = regexp.MustCompile(`"([^"]*)"`)
 	reField        = regexp.MustCompile(`(?m)^\s+([\w?]+):(.+)$`)
 )
+
+// enumInfo 枚举的英文成员名与显示名（displayNames() 可缺省）
+type enumInfo struct{ names, display []string }
 
 // parseTsDir 解析 GenTs 输出目录(ts/ 子目录),重建 FunMeta。
 // 两遍解析:先收集全部 enum/interface 原始声明,再解析字段引用,
@@ -29,7 +34,7 @@ func parseTsDir(tsDir string) (*FunMeta, error) {
 		return nil, fmt.Errorf("%s 不是 fun 生成的 ts 目录(缺 client.ts)", tsDir)
 	}
 
-	enums := map[string][]string{}
+	enums := map[string]enumInfo{}
 	type rawField struct {
 		Name     string
 		TsType   string
@@ -64,7 +69,13 @@ func parseTsDir(tsDir string) (*FunMeta, error) {
 			for _, line := range reEnumMember.FindAllStringSubmatch(m[2], -1) {
 				names = append(names, line[1])
 			}
-			enums[m[1]] = names
+			var display []string
+			if dm := reDisplayNames.FindStringSubmatch(src); dm != nil {
+				for _, q := range reQuoted.FindAllStringSubmatch(dm[1], -1) {
+					display = append(display, q[1])
+				}
+			}
+			enums[m[1]] = enumInfo{names: names, display: display}
 			continue
 		}
 		if m := reInterface.FindStringSubmatch(src); m != nil {
@@ -128,7 +139,7 @@ func parseTsDir(tsDir string) (*FunMeta, error) {
 }
 
 // parseTsType TS 类型串 → 元数据类型树
-func parseTsType(s string, interfaces map[string]*MetaType, enums map[string][]string) *MetaType {
+func parseTsType(s string, interfaces map[string]*MetaType, enums map[string]enumInfo) *MetaType {
 	s = strings.TrimSpace(s)
 	// 流式 dto 工厂类型 "X | (() => X)" 取值类型部分
 	if i := strings.Index(s, " | ("); i >= 0 {
@@ -156,9 +167,10 @@ func parseTsType(s string, interfaces map[string]*MetaType, enums map[string][]s
 	case "any":
 		t.Kind, t.Name = "string", "any"
 	default:
-		if names, ok := enums[s]; ok {
+		if info, ok := enums[s]; ok {
 			t.Kind, t.Name = "enum", s
-			t.Names = names
+			t.Names = info.names
+			t.DisplayNames = info.display
 			return t
 		}
 		if it, ok := interfaces[s]; ok {
