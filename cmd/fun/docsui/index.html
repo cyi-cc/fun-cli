@@ -6,122 +6,278 @@
 <title>fun docs</title>
 <style>
 :root{
-  --bg:#ffffff;--bg2:#f6f8fa;--line:#d8dee4;
-  --fg:#1f2328;--fg2:#636c76;--fg3:#8b949e;
-  --acc:#0969da;--accbg:#ddf4ff;
-  --ok:#1a7f37;--okbg:#dafbe1;--err:#cf222e;--errbg:#ffebe9;
-  --stream:#9a6700;--streambg:#fff8c5;
-  --code:#24292f;
+  --bg:#f4f5f8;--panel:#ffffff;--bg2:#eef0f4;
+  --line:#e4e7ed;--line2:#d4d9e1;
+  --fg:#1b2230;--fg2:#5d6575;--fg3:#97a0af;
+  --acc:#6366f1;--acc-strong:#4f46e5;--accbg:rgba(99,102,241,.11);
+  --ok:#16a34a;--okbg:rgba(22,163,74,.12);
+  --err:#dc2626;--errbg:rgba(220,38,38,.10);
+  --stream:#b45309;--streambg:rgba(217,119,6,.13);
+  --code-bg:#10162a;--code-fg:#d7deeb;
+  --tk-key:#82aaff;--tk-str:#c3e88d;--tk-num:#f78c6c;--tk-lit:#c792ea;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 4px 16px -4px rgba(16,24,40,.06);
   --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font:14px/1.65 -apple-system,'Segoe UI',system-ui,'PingFang SC','Microsoft YaHei',sans-serif;display:flex;flex-direction:column;overflow:hidden}
+::selection{background:var(--accbg)}
 /* 顶栏 */
-header{display:flex;align-items:center;gap:10px;padding:9px 20px;background:var(--bg2);border-bottom:1px solid var(--line);flex-shrink:0}
-header .logo{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--fg)}
-header .logo b{color:var(--acc)}
-header .meta{color:var(--fg2);font-size:12.5px}
-header .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+header{display:flex;align-items:center;gap:10px;height:52px;padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line);flex-shrink:0}
+header .logo{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:-.01em}
+header .logo b{color:var(--acc);font-weight:700}
+header .meta{color:var(--fg3);font-size:12.5px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);position:relative;flex-shrink:0}
+.dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--ok);opacity:0;animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.4);opacity:.7}70%,100%{transform:scale(1.1);opacity:0}}
+.spacer{flex:1}
+
 #layout{flex:1;display:flex;min-height:0}
 /* 侧栏 */
-aside{width:280px;min-width:280px;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg)}
-#search{margin:12px 14px 6px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;outline:none;background:var(--bg)}
+aside{width:272px;min-width:272px;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--panel)}
+.searchbox{position:relative;margin:14px 14px 8px}
+.searchbox>svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--fg3);pointer-events:none}
+.searchbox .kbd{position:absolute;right:8px;top:50%;transform:translateY(-50%)}
+.kbd{font-family:var(--mono);font-size:10px;line-height:16px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--fg3);background:var(--bg)}
+#search{width:100%;padding:7px 30px 7px 31px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none;background:var(--bg);color:var(--fg);transition:border-color .15s,box-shadow .15s}
+#search::placeholder{color:var(--fg3)}
 #search:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
-#tree{flex:1;overflow-y:auto;padding:2px 8px 16px}
-.svc{margin:14px 8px 4px;font-size:11.5px;color:var(--fg2);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
-.mth{display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:6px;cursor:pointer;font-size:13.5px;color:var(--fg)}
-.mth:hover{background:var(--bg2)}
+#tree{flex:1;overflow-y:auto;padding:4px 10px 20px}
+.svc{display:flex;align-items:center;justify-content:space-between;margin:18px 8px 5px;font-size:11px;color:var(--fg3);font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.svc .cnt{font-family:var(--mono);font-weight:600;font-size:10px;color:var(--fg3);background:var(--bg2);border-radius:8px;padding:0 6px;line-height:16px}
+.mth{display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--fg2);transition:background .12s,color .12s;position:relative}
+.mth:hover{background:var(--bg2);color:var(--fg)}
 .mth.on{background:var(--accbg);color:var(--fg)}
-.mth.on::before{content:'';display:inline-block;width:3px;height:14px;background:var(--acc);border-radius:2px;margin-right:2px}
-.mth .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mth.on .nm{font-weight:600}
-.badge{font-size:10px;padding:1px 6px;border-radius:10px;font-family:var(--mono);border:1px solid}
-.b-stream{color:var(--stream);border-color:var(--streambg);background:var(--streambg)}
-.b-void{color:var(--fg2);background:var(--bg2);border-color:var(--line)}
+.mth.on::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--acc);border-radius:0 3px 3px 0}
+.mth .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:13px}
+.mth.on .nm{font-weight:600;color:var(--acc-strong)}
+.badge{font-size:9px;padding:0 5px;border-radius:6px;font-family:var(--mono);font-weight:600;letter-spacing:.04em;line-height:15px}
+.b-stream{color:var(--stream);background:var(--streambg)}
 /* 正文 */
-main{flex:1;overflow-y:auto;padding:26px 34px 60px}
-.doc{max-width:860px}
-h1{font-size:24px;font-weight:600;letter-spacing:-.01em;font-family:var(--mono);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tag{font-size:11px;font-weight:500;padding:2px 9px;border-radius:10px;font-family:var(--mono)}
+main{flex:1;overflow-y:auto;padding:30px 40px 90px}
+.doc{max-width:880px}
+.crumb{font-size:12px;color:var(--fg3);font-family:var(--mono);margin-bottom:6px}
+.titlerow{display:flex;align-items:center;gap:14px}
+.titlerow>div{min-width:0;flex:1}
+h1{font-size:23px;font-weight:700;letter-spacing:-.02em;font-family:var(--mono);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:9px;font-family:var(--mono);letter-spacing:.02em}
 .t-stream{color:var(--stream);background:var(--streambg)}
-.t-void{color:var(--fg2);background:var(--bg2);border:1px solid var(--line)}
-.sig{margin:8px 0 4px;color:var(--fg2);font-size:13px;font-family:var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
-.sig b{color:var(--acc);font-weight:600}
-h2{font-size:17px;font-weight:600;margin:26px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
-h2 .sub{font-weight:400;color:var(--fg2);font-size:12.5px;margin-left:8px}
+.endpoint{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 8px;padding:11px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);font-family:var(--mono);font-size:12.5px;color:var(--fg2)}
+.http-method{background:var(--ok);color:#fff;font-weight:700;font-size:10.5px;padding:2.5px 8px;border-radius:6px;letter-spacing:.06em}
+.endpoint .path{color:var(--fg);font-weight:600}
+.endpoint .sep{color:var(--line2)}
+.endpoint b{color:var(--acc-strong);font-weight:600}
+h2{font-size:15px;font-weight:650;margin:32px 0 12px;display:flex;align-items:baseline;gap:8px}
+h2::before{content:'';align-self:center;width:4px;height:14px;border-radius:2px;background:var(--acc);flex-shrink:0}
+h2 .sub{font-weight:400;color:var(--fg3);font-size:12px;margin-left:2px}
 /* 参数表 */
+.tbl{border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:var(--shadow)}
 table.params{width:100%;border-collapse:collapse;font-size:13px}
-table.params th{text-align:left;color:var(--fg2);font-weight:600;font-size:12px;padding:6px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
-table.params td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-table.params tr:last-child td{border-bottom:none}
-table.params td.name{font-family:var(--mono);white-space:nowrap}
-table.params td.type{font-family:var(--mono);color:var(--fg2);white-space:nowrap}
+table.params tr:first-child th:first-child{border-top-left-radius:10px}
+table.params tr:first-child th:last-child{border-top-right-radius:10px}
+table.params th{text-align:left;color:var(--fg3);font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--line);white-space:nowrap}
+table.params td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.params tr:last-child>td{border-bottom:none}
+table.params td.name{font-family:var(--mono);white-space:nowrap;font-size:12.5px}
+table.params td.type{font-family:var(--mono);color:var(--acc-strong);font-size:12px;white-space:nowrap}
 table.params td.name .req{color:var(--err);font-weight:700}
-table.params td.name .opt{color:var(--fg3);font-size:11px}
-input[type=text],textarea,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--fg);padding:5px 9px;font-size:13px;font-family:var(--mono);outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
-textarea{min-height:60px;resize:vertical}
-input[type=checkbox]{accent-color:var(--acc);width:14px;height:14px}
-.nest{border-left:2px solid var(--line);margin:6px 0 2px;padding-left:14px}
-.subhdr{font-family:var(--mono);font-size:12px;color:var(--fg2);margin:10px 0 4px}
-/* state */
+table.params td.name .opt{color:var(--fg3);font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:0 4px;margin-left:4px}
+input[type=text],textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:7px;color:var(--fg);padding:6px 10px;font-size:12.5px;font-family:var(--mono);outline:none;transition:border-color .15s,box-shadow .15s}
+input[type=text]:hover,textarea:hover{border-color:var(--line2)}
+input:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+textarea{min-height:56px;resize:vertical}
+/* 自定义下拉 */
+.xselect{position:relative}
+.xsel-btn{width:100%;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px;font:12.5px var(--mono);color:var(--fg);cursor:pointer;text-align:left;outline:none;transition:border-color .15s,box-shadow .15s}
+.xsel-btn:hover{border-color:var(--line2)}
+.xselect.open .xsel-btn{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+.xsel-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xsel-label.ph{color:var(--fg3)}
+.xsel-btn>svg{width:12px;height:12px;color:var(--fg3);flex-shrink:0;transition:transform .15s}
+.xselect.open .xsel-btn>svg{transform:rotate(180deg)}
+.xsel-pop{display:none;position:absolute;z-index:60;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);border-radius:9px;box-shadow:0 10px 28px -8px rgba(16,24,40,.22),0 2px 6px rgba(16,24,40,.08);padding:4px;max-height:230px;overflow:auto}
+.xselect.up .xsel-pop{top:auto;bottom:calc(100% + 4px)}
+.xselect.open .xsel-pop{display:block}
+.xopt{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:12.5px;font-family:var(--mono);color:var(--fg);cursor:pointer;user-select:none}
+.xopt:hover{background:var(--accbg)}
+.xopt.sel{color:var(--acc-strong);font-weight:600}
+.xopt.sel::after{content:'✓';margin-left:auto;color:var(--acc)}
+.xopt.empty{color:var(--fg3)}
+.nest{border-left:2px solid var(--accbg);margin:4px 0 2px;padding-left:14px}
+.nest .tbl{box-shadow:none}
+.subhdr{font-family:var(--mono);font-size:11.5px;color:var(--fg3);margin:8px 0 6px}
 /* 发送 */
 #sendBar{display:flex;gap:10px;align-items:center;margin:4px 0 4px}
-#send{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:14px;font-weight:600;cursor:pointer}
-#send:hover{background:#0860c4}
+.btn{border:none;border-radius:8px;padding:8px 22px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s}
+#send{background:var(--acc);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+#send:hover{background:var(--acc-strong)}
+#send:active{transform:translateY(1px)}
 #send:disabled{opacity:.55;cursor:wait}
 #send.stop{background:var(--err)}
-#copyReq{background:var(--bg);border:1px solid var(--line);color:var(--fg2);border-radius:6px;padding:7px 14px;cursor:pointer;font-size:13px}
-#copyReq:hover{border-color:var(--acc);color:var(--acc)}
-#sendHint{color:var(--fg2);font-size:12.5px}
-/* 请求/响应示例块 */
-.block{border:1px solid var(--line);border-radius:8px;margin-top:8px;overflow:hidden}
-.block .bhead{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--bg2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--fg2)}
-.chip{padding:1px 9px;border-radius:10px;font-weight:500}
+.ghost{background:var(--panel);border:1px solid var(--line);color:var(--fg2);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12.5px;font-weight:500;transition:all .15s}
+.ghost:hover{border-color:var(--acc);color:var(--acc)}
+.sharebtn{display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:12.5px}
+.sharebtn svg{width:13px;height:13px}
+.mini{background:none;border:1px solid var(--line);border-radius:6px;color:var(--fg2);font-size:11px;padding:1px 9px;cursor:pointer;transition:all .15s}
+.mini:hover{border-color:var(--acc);color:var(--acc)}
+#sendHint{color:var(--fg3);font-size:12.5px}
+/* state */
+#stateRows .srow{display:grid;grid-template-columns:1fr 1.4fr 30px;gap:8px;margin-bottom:6px;max-width:560px}
+#stateRows .srow button{background:none;border:none;color:var(--fg3);cursor:pointer;font-size:16px;border-radius:6px;transition:color .12s}
+#stateRows .srow button:hover{color:var(--err)}
+#addState{background:var(--panel);border:1px dashed var(--line2);color:var(--fg2);border-radius:8px;padding:4px 14px;cursor:pointer;font-size:12.5px;transition:all .15s}
+#addState:hover{border-color:var(--acc);color:var(--acc);background:var(--accbg)}
+/* 请求/响应块——深色编辑器风格 */
+.block{border:1px solid var(--line);border-radius:12px;margin-top:8px;overflow:hidden;box-shadow:var(--shadow)}
+.bhead{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--fg2)}
+.chips{display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap}
+.chip{padding:1.5px 9px;border-radius:9px;font-weight:600;font-size:11px;white-space:nowrap}
 .c-ok{color:var(--ok);background:var(--okbg)}
 .c-err{color:var(--err);background:var(--errbg)}
-.c-info{color:var(--acc);background:var(--accbg)}
-#stateRows .srow{display:grid;grid-template-columns:1fr 1.4fr 30px;gap:8px;margin-bottom:6px;max-width:560px}
-#stateRows .srow button{background:none;border:none;color:var(--fg3);cursor:pointer;font-size:15px}
-#stateRows .srow button:hover{color:var(--err)}
-#addState{background:var(--bg);border:1px dashed var(--line);color:var(--fg2);border-radius:6px;padding:3px 12px;cursor:pointer;font-size:12.5px}
-#addState:hover{border-color:var(--acc);color:var(--acc)}
-textarea.body{width:100%;border:none;outline:none;background:var(--bg);padding:14px 16px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow:auto;max-height:50vh;white-space:pre;resize:vertical;color:var(--code);display:block}
-pre.body{padding:14px 16px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow:auto;max-height:50vh;white-space:pre-wrap;word-break:break-all;color:var(--code)}
+.c-info{color:var(--acc-strong);background:var(--accbg)}
+textarea.body{width:100%;border:none;outline:none;background:var(--code-bg);padding:15px 17px;font-family:var(--mono);font-size:12.5px;line-height:1.65;overflow:auto;min-height:120px;max-height:50vh;white-space:pre;resize:vertical;color:var(--code-fg);display:block;border-radius:0}
+textarea.body:focus{box-shadow:none}
+pre.body{padding:15px 17px;font-family:var(--mono);font-size:12.5px;line-height:1.65;overflow:auto;max-height:50vh;white-space:pre-wrap;word-break:break-all;color:var(--code-fg);background:var(--code-bg)}
+.tk-key{color:var(--tk-key)}
+.tk-str{color:var(--tk-str)}
+.tk-num{color:var(--tk-num)}
+.tk-lit{color:var(--tk-lit)}
 .empty{color:var(--fg3);font-size:12.5px;font-family:var(--mono)}
-.note{color:var(--fg2);font-size:12.5px;margin-top:6px}
-.note code,td.hint code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:11.5px}
+.note{color:var(--fg2);font-size:12.5px;margin-top:8px}
+.note code,td.hint code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:11.5px;color:var(--acc-strong)}
+/* 可编辑说明 */
+#mnote{min-height:64px;font-family:inherit;font-size:13px;background:var(--panel);border-radius:10px;padding:10px 13px;box-shadow:var(--shadow);resize:vertical}
+#mnote::placeholder{color:var(--fg3)}
+.fnote{font-size:11.5px;padding:4px 8px;background:var(--bg);border-style:dashed;color:var(--fg)}
+.fnote::placeholder{color:var(--fg3)}
+#editHint{margin-left:auto;font-weight:400;letter-spacing:0;text-transform:none;font-size:11.5px;color:var(--ok)}
+/* 类型树 */
+.tnode{display:inline-flex;align-items:center;gap:5px;cursor:pointer;user-select:none;color:var(--acc-strong)}
+.tnode:hover{text-decoration:underline}
+.tnode .caret{width:9px;color:var(--fg3);transition:transform .15s;display:inline-block;font-size:10px}
+.tnode.open .caret{transform:rotate(90deg)}
+.tkids{display:none;margin:2px 0 2px 7px;padding-left:9px;border-left:1px solid var(--line);font-size:11.5px;line-height:1.75}
+.tnode.open+.tkids{display:block}
+.tkids .tkids{display:block}
+.tkid{color:var(--fg);white-space:nowrap}
+.tkid .tv{color:var(--fg3)}
+.tkid b{font-weight:500;font-family:var(--mono)}
+.rettype{display:inline-block;font-family:var(--mono);font-size:13px;color:var(--acc-strong);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 16px;box-shadow:var(--shadow)}
 ::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-thumb{background:#c9d1d9;border-radius:5px;border:2px solid var(--bg)}
-::-webkit-scrollbar-thumb:hover{background:#afb8c1}
-#empty{color:var(--fg3);margin-top:20vh;text-align:center;font-size:14px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--fg3)}
+#empty{margin-top:22vh;text-align:center;color:var(--fg3)}
+#empty .eico{width:46px;height:46px;margin:0 auto 14px;border:1px dashed var(--line2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--fg3)}
+#empty .eico svg{width:22px;height:22px}
+#empty p{font-size:13.5px}
+#empty .kbd{margin-left:4px}
 </style>
 </head>
 <body>
 <header>
   <span class="logo">fun<b>·docs</b></span>
   <span class="dot" id="live"></span>
-  <span class="meta" id="hmeta">加载中…</span>
+  <span class="meta" id="hmeta"></span>
+  <span class="spacer"></span>
 </header>
 <div id="layout">
   <aside>
-    <input id="search" placeholder="搜索服务或方法…" autofocus>
+    <div class="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" placeholder="搜索服务或方法…" autofocus>
+      <span class="kbd">/</span>
+    </div>
     <div id="tree"></div>
   </aside>
-  <main id="main"><div id="empty">在左侧选择一个方法查看文档</div></main>
+  <main id="main"><div id="empty">
+    <div class="eico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+    <p>在左侧选择一个方法查看文档</p>
+    <p style="margin-top:6px;font-size:12px">按<span class="kbd">/</span>快速搜索</p>
+  </div></main>
 </div>
 <script>
-let META=null, CUR=null, ABORT=null;
+let META=null, CUR=null, ABORT=null, EDITS={}, ACTIVE='';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-fetch('/fun-meta.json').then(r=>r.json()).then(m=>{
-  META=m;
-  const nS=m.services.length;let nM=0;m.services.forEach(s=>nM+=s.methods.length);
-  $('#hmeta').textContent=`${nS} 个服务 · ${nM} 个方法`;
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#search').focus()}
+});
+
+/* 点击委托（绑一次）：类型树展开、自定义下拉、点空白收起下拉 */
+document.addEventListener('click',e=>{
+  const tn=e.target.closest('.tnode');
+  if(tn){tn.classList.toggle('open');return}
+  const btn=e.target.closest('.xsel-btn');
+  if(btn){
+    const xs=btn.parentElement;
+    const was=xs.classList.contains('open');
+    document.querySelectorAll('.xselect.open').forEach(x=>x.classList.remove('open'));
+    if(!was){
+      const r=btn.getBoundingClientRect();
+      xs.classList.toggle('up',r.bottom+250>innerHeight&&r.top>250);
+      xs.classList.add('open');
+    }
+    return;
+  }
+  const opt=e.target.closest('.xopt');
+  if(opt){
+    const xs=opt.closest('.xselect'),inp=xs.querySelector('input'),lbl=xs.querySelector('.xsel-label');
+    inp.value=opt.dataset.v;
+    inp.dispatchEvent(new Event('input',{bubbles:true}));
+    lbl.textContent=opt.dataset.v===''?'请选择…':opt.textContent;
+    lbl.classList.toggle('ph',opt.dataset.v==='');
+    xs.querySelectorAll('.xopt').forEach(o=>o.classList.toggle('sel',o===opt));
+    xs.classList.remove('open');
+    return;
+  }
+  if(!e.target.closest('.xselect'))document.querySelectorAll('.xselect.open').forEach(x=>x.classList.remove('open'));
+});
+
+Promise.all([
+  fetch('/fun-meta.json').then(r=>r.json()),
+  fetch('/fun-docs-edits.json').then(r=>r.json()).catch(()=>({}))
+]).then(([m,e])=>{
+  META=m;EDITS=e||{};
   renderTree('');
-}).catch(e=>{$('#hmeta').textContent='元数据加载失败: '+e.message;$('#live').style.background='var(--err)'});
+  selectFromHash();
+}).catch(e=>{const h=$('#hmeta');h.textContent='元数据加载失败: '+e.message;h.style.color='var(--err)';$('#live').style.background='var(--err)'});
+
+window.addEventListener('hashchange',selectFromHash);
+/* 深链：#Svc.Method 或 #Svc.Method?req=<base64url 请求体> */
+function selectFromHash(){
+  let h=decodeURIComponent(location.hash.slice(1));
+  if(!h||!META)return;
+  const qi=h.indexOf('?');
+  const mpart=qi<0?h:h.slice(0,qi);
+  const i=mpart.lastIndexOf('.');
+  const svc=META.services.find(s=>s.name===mpart.slice(0,i));
+  const m=svc&&svc.methods.find(x=>x.name===mpart.slice(i+1));
+  if(!m)return;
+  if(!(mpart===ACTIVE&&CUR)){ACTIVE=mpart;renderTree($('#search').value);showMethod(svc,m)}
+  if(qi>=0){
+    const req=new URLSearchParams(h.slice(qi+1)).get('req');
+    if(req){try{
+      reqDirty=true;
+      $('#reqBody').value=pretty(b64uDec(req));
+      fitReq();
+      $('#reqHead').querySelector('.chip').textContent='来自分享链接';
+      $('#resetReq').style.display='';
+    }catch{}}
+  }
+}
+const b64u=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const b64uDec=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
+
+function share(){
+  if(!CUR)return;
+  let url=location.origin+location.pathname+'#'+encodeURIComponent(ACTIVE);
+  try{url+='?req='+b64u(JSON.stringify(JSON.parse($('#reqBody').value)))}catch{}
+  navigator.clipboard.writeText(url);
+  const b=$('#shareBtn'),old=b.innerHTML;
+  b.innerHTML='已复制 ✓';b.style.color='var(--ok)';b.style.borderColor='var(--ok)';
+  setTimeout(()=>{b.innerHTML=old;b.style.color='';b.style.borderColor=''},1500);
+}
 
 $('#search').addEventListener('input',e=>renderTree(e.target.value));
 
@@ -131,13 +287,15 @@ function renderTree(q){
   META.services.forEach(svc=>{
     const ms=svc.methods.filter(m=>!q||m.name.toLowerCase().includes(q)||svc.name.toLowerCase().includes(q));
     if(!ms.length)return;
-    const h=document.createElement('div');h.className='svc';h.textContent=svc.name;t.appendChild(h);
+    const h=document.createElement('div');h.className='svc';
+    h.innerHTML=`<span>${esc(svc.name)}</span><span class="cnt">${ms.length}</span>`;
+    t.appendChild(h);
     ms.forEach(m=>{
       const d=document.createElement('div');d.className='mth';
+      if(svc.name+'.'+m.name===ACTIVE)d.classList.add('on');
       d.innerHTML=`<span class="nm">${esc(m.name)}</span>`+
-        (m.isStream?'<span class="badge b-stream">stream</span>':'')+
-        (m.void?'<span class="badge b-void">void</span>':'');
-      d.onclick=()=>{document.querySelectorAll('.mth').forEach(x=>x.classList.remove('on'));d.classList.add('on');showMethod(svc,m)};
+        (m.isStream?'<span class="badge b-stream">stream</span>':'');
+      d.onclick=()=>{ACTIVE=svc.name+'.'+m.name;history.replaceState(null,'','#'+encodeURIComponent(ACTIVE));document.querySelectorAll('.mth').forEach(x=>x.classList.remove('on'));d.classList.add('on');showMethod(svc,m)};
       t.appendChild(d);
     });
   });
@@ -152,20 +310,33 @@ function typeLabel(t){
 
 function showMethod(svc,m){
   CUR={svc,m};reqDirty=false;ABORT&&ABORT.abort();ABORT=null;
-  const badges=(m.isStream?'<span class="tag t-stream">NDJSON 流式</span>':'')+(m.void?'<span class="tag t-void">无返回值</span>':'');
+  const badges=m.isStream?'<span class="tag t-stream">NDJSON 流式</span>':'';
   const retLine = m.isStream
     ? (m.returns?`首条消息 <b>${esc(typeLabel(m.returns))}</b>，其后逐行推送 NDJSON`:`持续推送 NDJSON 行`)
     : (m.void?`无数据返回，仅 <b>result.void</b>`:(m.returns?`<b>${esc(typeLabel(m.returns))}</b>`:''));
   const dtoName = m.dto?esc(m.dto.name):'无';
   $('#main').innerHTML=`<div class="doc">
-    <h1>${esc(svc.name)}.${esc(m.name)} ${badges}</h1>
-    <div class="sig"><b>POST</b> /cell · serviceName=<b>${esc(svc.name)}</b> · methodName=<b>${esc(m.name)}</b></div>
+    <div class="titlerow"><div>
+      <div class="crumb">${esc(svc.name)} / ${esc(m.name)}</div>
+      <h1>${esc(svc.name)}.${esc(m.name)} ${badges}</h1>
+    </div>
+    <button class="ghost sharebtn" id="shareBtn" title="复制分享链接（含当前方法与请求体）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>分享</button>
+    </div>
+    <div class="endpoint"><span class="http-method">POST</span><span class="path">/cell</span><span class="sep">·</span><span>serviceName=<b>${esc(svc.name)}</b></span><span class="sep">·</span><span>methodName=<b>${esc(m.name)}</b></span></div>
     <div class="note">返回：${retLine} · 请求 DTO：${dtoName}${m.dto&&m.dto.fields?'':'（该方法不接收参数）'}</div>
+
+    <h2>说明<span class="sub">可编辑 · 自动保存到本地 JSON 存档</span><span id="editHint"></span></h2>
+    <textarea id="mnote" placeholder="为这个接口写点说明…" spellcheck="false"></textarea>
 
     ${m.dto?`
     <h2>请求参数<span class="sub">${esc(m.dto.name)}</span></h2>
     ${paramsTable(m.dto,[])}
     <div class="note">带 <code>*</code> 为必填；可空字段留空即不发送；切片按 JSON 数组填写。字段名以小写开头随请求传输。</div>
+    `:''}
+
+    ${m.returns?`
+    <h2>返回类型<span class="sub">${esc(typeLabel(m.returns))}${m.isStream?' · 首条消息类型':''}</span></h2>
+    ${m.returns.fields?typeTable(m.returns):`<div class="rettype">${esc(typeLabel(m.returns))}</div>`}
     `:''}
 
     <h2>State<span class="sub">随请求携带 · Guard 可读 · 存于 localStorage</span></h2>
@@ -174,23 +345,37 @@ function showMethod(svc,m){
 
     <h2>试一下<span class="sub">填好参数点发送，请求与响应都会展示在下方</span></h2>
     <div id="sendBar">
-      <button id="send">发送请求</button>
-      <button id="copyReq">复制请求 JSON</button>
+      <button class="btn" id="send">发送请求</button>
       <span id="sendHint"></span>
     </div>
 
     <h2>请求<span class="sub">表单填充自动生成，可直接编辑后发送</span></h2>
     <div class="note" style="margin:0 0 8px">请求体即发送到 <code>POST /cell</code> 的 JSON，State 值由上方字段注入，也可手动编辑后发送。</div>
-    <div class="block"><div class="bhead" id="reqHead"><span class="chip c-info">表单生成</span><button id="resetReq" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:5px;color:var(--fg2);font-size:11px;padding:1px 8px;cursor:pointer;display:none">按表单重置</button></div><textarea class="body edit" id="reqBody" spellcheck="false"></textarea></div>
+    <div class="block"><div class="bhead"><span class="chips" id="reqHead"><span class="chip c-info">表单生成</span></span><button class="mini" id="resetReq" style="display:none">按表单重置</button></div><textarea class="body edit" id="reqBody" spellcheck="false"></textarea></div>
 
     <h2>响应</h2>
-    <div class="block"><div class="bhead" id="respHead"><span class="chip c-info">未发送</span></div><pre class="body" id="respBody"><span class="empty">发送后在此展示格式化的响应${m.isStream?'（流式方法逐行追加）':''}</span></pre></div>
+    <div class="block"><div class="bhead"><span class="chips" id="respHead"><span class="chip c-info">未发送</span></span><button class="mini" id="copyResp">复制</button></div><pre class="body" id="respBody"><span class="empty">发送后在此展示格式化的响应${m.isStream?'（流式方法逐行追加）':''}</span></pre></div>
   </div>`;
   $('#addState').onclick=()=>addStateRow('','');
   const st=JSON.parse(localStorage.getItem('fun-docs-state')||'{}');
   Object.entries(st).forEach(([k,v])=>addStateRow(k,v));
   $('#send').onclick=send;
-  $('#copyReq').onclick=copyReq;
+  $('#shareBtn').onclick=share;
+  $('#copyResp').onclick=copyResp;
+  // 说明/字段备注：默认空，只回显存档里的用户编辑
+  const key=curKey();
+  const ta=$('#mnote');ta.value=(EDITS[key]&&EDITS[key].note)||'';
+  ta.addEventListener('input',()=>{(EDITS[key]=EDITS[key]||{}).note=ta.value;queueSave(key)});
+  document.querySelectorAll('#main .fnote').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const e=EDITS[key]=EDITS[key]||{};
+      const bag=el.dataset.rn!=null?'retFields':'fields';
+      (e[bag]=e[bag]||{})[el.dataset.fn||el.dataset.rn]=el.value;
+      if(!el.value.trim())delete e[bag][el.dataset.fn||el.dataset.rn];
+      queueSave(key);
+    });
+  });
+
   // 表单一变就同步请求体（手动编辑过则不动，可点"按表单重置"恢复）
   document.querySelectorAll('#main input,#main select').forEach(el=>{
     el.addEventListener('input',previewRequest);el.addEventListener('change',previewRequest);
@@ -203,6 +388,7 @@ function showMethod(svc,m){
     reqDirty=true;
     $('#reqHead').querySelector('.chip').textContent='手动编辑';
     $('#resetReq').style.display='';
+    fitReq();
   });
   $('#resetReq').onclick=()=>{reqDirty=false;$('#resetReq').style.display='none';$('#reqHead').querySelector('.chip').textContent='表单生成';previewRequest();};
   previewRequest();
@@ -210,32 +396,82 @@ function showMethod(svc,m){
 
 /* ---------- 参数表 ---------- */
 function paramsTable(t,path){
-  let h=`<table class="params"><tr><th style="width:190px">字段</th><th style="width:130px">类型</th><th style="width:270px">示例值</th><th>说明</th></tr>`;
+  let h=`<div class="tbl"><table class="params"><tr><th style="width:190px">字段</th><th style="width:130px">类型</th><th style="width:270px">示例值</th><th>说明</th></tr>`;
   h+=paramRows(t,path);
-  return h+'</table>';
+  return h+'</table></div>';
 }
 function paramRows(t,path){
   let h='';
   t.fields.forEach(f=>{
     const p=[...path,f.name];
     const id='f-'+p.join('.');
-    const req=!f.type.optional&&f.type.kind!=='slice';
-    h+=`<tr><td class="name">${esc(firstLower(f.name))}${f.type.optional?'<span class="opt"> 可空</span>':'<span class="req">*</span>'}</td><td class="type">${esc(typeLabel(f.type))}</td>`;
+    const lp=[...path.map(firstLower),firstLower(f.name)].join('.');
+    h+=`<tr><td class="name">${esc(firstLower(f.name))}${f.type.optional?'<span class="opt">可空</span>':'<span class="req">*</span>'}</td><td class="type">${typeCellHTML(f.type)}</td>`;
     h+=`<td>${controlHTML(f.type,id)}</td>`;
-    h+=`<td class="hint" style="color:var(--fg2);font-size:12.5px">${hintFor(f.type)}</td></tr>`;
+    h+=`<td class="hint"><input type="text" class="fnote" data-fn="${esc(lp)}" placeholder="备注…" value="${esc(fieldNote(lp))}"></td></tr>`;
     if(f.type.kind==='struct')h+=`<tr><td colspan="4"><div class="nest"><div class="subhdr">${esc(f.type.name)} 字段：</div>${paramsTable(f.type,p)}</div></td></tr>`;
   });
   return h;
 }
-function hintFor(t){
-  switch(t.kind){
-    case 'int':return '定宽整数，<code>int64</code> 全链路精度';
-    case 'enum':return '枚举序号：'+(t.names||[]).map((n,i)=>(t.displayNames&&t.displayNames[i]?t.displayNames[i]:n)+'='+i).join(' · ');
-    case 'slice':return 'JSON 数组，如 <code>["a","b"]</code>';
-    case 'struct':return '嵌套对象';
-    case 'bool':return 'true / false';
-    default:return '';
-  }
+/* 返回类型表（类型树 + 可编辑备注） */
+function typeTable(t){
+  return `<div class="tbl"><table class="params"><tr><th style="width:200px">字段</th><th style="width:170px">类型</th><th>说明</th></tr>${typeRows(t,0,[])}</table></div>`;
+}
+function typeRows(t,depth,path){
+  let h='';
+  (t.fields||[]).forEach(f=>{
+    const lp=[...path.map(firstLower),firstLower(f.name)].join('.');
+    h+=`<tr><td class="name">${esc(firstLower(f.name))}</td><td class="type">${typeCellHTML(f.type)}</td><td class="hint"><input type="text" class="fnote" data-rn="${esc(lp)}" placeholder="备注…" value="${esc(retNote(lp))}"></td></tr>`;
+    if(f.type.kind==='struct'&&depth<3)h+=`<tr><td colspan="3"><div class="nest"><div class="subhdr">${esc(f.type.name)} 字段：</div><div class="tbl"><table class="params">${typeRows(f.type,depth+1,[...path,f.name])}</table></div></div></td></tr>`;
+  });
+  return h;
+}
+/* 类型树：enum 成员 / struct 字段（递归）/ slice 取元素类型 */
+function typeCellHTML(t){
+  const kids=typeKids(t),label=esc(typeLabel(t));
+  if(!kids)return label;
+  return `<div class="tnode"><span class="caret">▸</span><span>${label}</span></div><div class="tkids">${kids}</div>`;
+}
+function typeKids(t){
+  if(!t)return '';
+  if(t.kind==='enum')return (t.names||[]).map((n,i)=>`<div class="tkid">${esc((t.displayNames&&t.displayNames[i])?t.displayNames[i]:n)}<span class="tv"> · ${esc(n)} = ${i}</span></div>`).join('');
+  if(t.kind==='struct'&&t.fields)return structKids(t,0);
+  if(t.kind==='slice')return typeKids(t.elem);
+  return '';
+}
+function structKids(t,depth){
+  if(depth>=3)return `<div class="tkid tv">…</div>`;
+  return (t.fields||[]).map(f=>{
+    const sub=typeKids(f.type);
+    return `<div class="tkid"><b>${esc(firstLower(f.name))}</b><span class="tv">: ${esc(typeLabel(f.type))}</span>${sub?`<div class="tkids" style="display:block">${sub}</div>`:''}</div>`;
+  }).join('');
+}
+/* 编辑存档 */
+const curKey=()=>CUR.svc.name+'.'+CUR.m.name;
+function fieldNote(lp){
+  const e=EDITS[curKey()];
+  return (e&&e.fields&&e.fields[lp])||'';
+}
+function retNote(lp){
+  const e=EDITS[curKey()];
+  return (e&&e.retFields&&e.retFields[lp])||'';
+}
+let saveT=null;
+function queueSave(key){
+  clearTimeout(saveT);
+  const h=$('#editHint');
+  if(h){h.textContent='编辑中…';h.style.color='var(--fg3)'}
+  saveT=setTimeout(()=>saveEntry(key),600);
+}
+async function saveEntry(key){
+  const e=EDITS[key]||{};
+  const empty=!e.note&&!Object.keys(e.fields||{}).length&&!Object.keys(e.retFields||{}).length;
+  const h=$('#editHint');
+  try{
+    const r=await fetch('/fun-docs-edits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,entry:empty?null:e})});
+    if(h){h.textContent=r.ok?'已保存 ✓':'保存失败';h.style.color=r.ok?'var(--ok)':'var(--err)'}
+  }catch{if(h){h.textContent='保存失败';h.style.color='var(--err)'}}
+  setTimeout(()=>{const x=$('#editHint');if(x)x.textContent=''},2500);
 }
 function controlHTML(t,id){
   // 可空字段与必填字段同样直接输入;留空即不随请求发送
@@ -245,15 +481,20 @@ function innerControl(t,id){
   switch(t.kind){
     case 'string':return `<input type="text" id="${id}" data-t="string">`;
     case 'int':return `<input type="text" id="${id}" data-t="int" inputmode="numeric" placeholder="0">`;
-    case 'bool':return `<select id="${id}" data-t="bool"><option value=""></option><option>true</option><option>false</option></select>`;
+    case 'bool':return xselectHTML(id,[['','（空）'],['true','true'],['false','false']]);
     case 'enum':{
-      let h=`<select id="${id}" data-t="enum"><option value=""></option>`;
-      (t.names||[]).forEach((n,i)=>h+=`<option value="${i}">${esc((t.displayNames&&t.displayNames[i])?t.displayNames[i]+' ('+n+')':n)}</option>`);
-      return h+'</select>';
+      const opts=[['','（空）']];
+      (t.names||[]).forEach((n,i)=>opts.push([String(i),(t.displayNames&&t.displayNames[i])?t.displayNames[i]+' ('+n+')':n]));
+      return xselectHTML(id,opts);
     }
     case 'slice':return `<textarea id="${id}" data-t="slice" placeholder='["a","b"] 或 [{...}]'></textarea>`;
     default:return `<input type="text" id="${id}" data-t="string">`;
   }
+}
+function xselectHTML(id,opts){
+  let h=`<div class="xselect"><button type="button" class="xsel-btn"><span class="xsel-label ph">请选择…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button><input type="hidden" id="${id}"><div class="xsel-pop">`;
+  opts.forEach(([v,label])=>{h+=`<div class="xopt${v===''?' empty':''}" data-v="${esc(v)}">${esc(label)}</div>`});
+  return h+'</div></div>';
 }
 const firstLower=s=>s?s[0].toLowerCase()+s.slice(1):s;
 
@@ -315,19 +556,25 @@ function previewRequest(){
   if(!CUR||reqDirty)return;
   const {body,errors}=buildRequest();
   const pre=$('#reqBody');if(!pre)return;
-  if(errors.length){pre.value=JSON.stringify({serviceName:CUR.svc.name,methodName:CUR.m.name},null,2);return}
+  if(errors.length){pre.value=JSON.stringify({serviceName:CUR.svc.name,methodName:CUR.m.name},null,2);fitReq();return}
   pre.value=pretty(JSON.stringify(body));
+  fitReq();
+}
+function fitReq(){
+  const t=$('#reqBody');if(!t)return;
+  t.style.height='auto';
+  t.style.height=Math.min(t.scrollHeight+2,Math.round(innerHeight*.5))+'px';
 }
 function requestBody(){
   const raw=$('#reqBody').value.trim();
   try{return{ok:JSON.parse(raw)}}catch(e){return{ok:null,err:e.message}}
 }
-function copyReq(){
-  const raw=$('#reqBody').value.trim();
-  try{JSON.parse(raw);navigator.clipboard.writeText(JSON.stringify(JSON.parse(raw),null,2))}
-  catch{navigator.clipboard.writeText(raw)}
-  $('#sendHint').textContent='已复制';
-  setTimeout(()=>$('#sendHint').textContent='',1500);
+function copyResp(){
+  const t=$('#respBody').textContent;
+  if(!t.trim())return;
+  navigator.clipboard.writeText(t);
+  const b=$('#copyResp');b.textContent='已复制';
+  setTimeout(()=>b.textContent='复制',1500);
 }
 
 /* ---------- 发送 ---------- */
@@ -340,7 +587,7 @@ async function send(){
     return;
   }
   const body=parsed.ok;
-  try{$('#reqBody').value=pretty(JSON.stringify(body))}catch{}
+  try{$('#reqBody').value=pretty(JSON.stringify(body));fitReq()}catch{}
   $('#reqHead').innerHTML='<span class="chip c-info">POST /cell</span>';
   const btn=$('#send');btn.disabled=true;
   const t0=performance.now();
@@ -356,7 +603,7 @@ async function send(){
     }else{
       const text=await res.text();
       $('#respHead').innerHTML=statusChip(res.status,ms,res.headers.get('content-type'));
-      $('#respBody').textContent=text?pretty(text):'(空响应体)';
+      setRespBody(text);
     }
   }catch(e){
     if(e.name==='AbortError')$('#respHead').innerHTML='<span class="chip c-err">已取消</span>';
@@ -366,11 +613,21 @@ async function send(){
     ABORT=null;btn.textContent='发送请求';btn.classList.remove('stop');btn.disabled=false;
   }
 }
+function setRespBody(text){
+  const pre=$('#respBody');
+  if(!text){pre.textContent='(空响应体)';return}
+  const p=pretty(text);
+  if(p!==text){pre.innerHTML=hlJSON(p)}
+  else{
+    try{JSON.parse(text);pre.innerHTML=hlJSON(p)}
+    catch{pre.textContent=text}
+  }
+}
 async function readStream(res,ms){
   $('#respHead').innerHTML=statusChip(res.status,ms,'application/x-ndjson');
   const pre=$('#respBody');pre.textContent='';
   if(!res.ok||!(res.headers.get('content-type')||'').includes('ndjson')){
-    pre.textContent=pretty(await res.text());return;
+    setRespBody(await res.text());return;
   }
   const reader=res.body.getReader(),dec=new TextDecoder();
   let buf='',lines=0;
@@ -383,8 +640,11 @@ async function readStream(res,ms){
     while((i=buf.indexOf('\n'))>=0){
       const line=buf.slice(0,i).trim();buf=buf.slice(i+1);
       if(!line)continue;
-      lines++;pre.textContent+=pretty(line)+'\n';
-      if(lines>800)pre.textContent='（超出 800 行，已截断）\n'+pre.textContent.split('\n').slice(-800).join('\n');
+      lines++;
+      const row=document.createElement('div');
+      row.innerHTML=hlLine(line);
+      pre.appendChild(row);
+      while(pre.childNodes.length>800)pre.removeChild(pre.firstChild);
       pre.scrollTop=pre.scrollHeight;
       $('#respHead').lastChild&&$('#respHead').lastChild.remove();
       $('#respHead').insertAdjacentHTML('beforeend',`<span class="chip c-ok">流式 · ${lines} 行</span>`);
@@ -398,6 +658,19 @@ function statusChip(status,ms,ct){
 }
 function pretty(text){
   try{return JSON.stringify(JSON.parse(text),null,2)}catch{return text}
+}
+/* JSON 语法高亮：键/字符串/数字/布尔/null 分色 */
+function hlJSON(text){
+  return text.replace(/"(\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|-?\d+(\.\d+)?([eE][+-]?\d+)?|\b(true|false|null)\b/g,
+    (m,str,colon)=>{
+      if(str!=null)return `<span class="tk-${colon?'key':'str'}">${esc(m)}</span>`;
+      if(colon)return `<span class="tk-key">${esc(m.slice(0,m.length-colon.length))}</span>${esc(colon)}`;
+      return `<span class="tk-${/^(true|false|null)$/.test(m)?'lit':'num'}">${esc(m)}</span>`;
+    });
+}
+function hlLine(line){
+  const p=pretty(line);
+  try{JSON.parse(line);return hlJSON(p)}catch{return esc(line)}
 }
 </script>
 </body>

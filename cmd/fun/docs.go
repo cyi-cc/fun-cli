@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 )
 
@@ -28,6 +29,7 @@ func cmdDocs(args []string) {
 	from := fs.String("from", "", "从元数据 JSON 文件读取")
 	pkg := fs.String("p", ".", "业务 main 包路径（用于采集元数据与自动启动后端）")
 	noStart := fs.Bool("no-run", false, "不自动启动后端（后端已在别处运行时使用）")
+	editsPath := fs.String("edits", "fun-docs-edits.json", "说明/备注编辑存档文件（启动时自动创建）")
 	fs.Parse(args)
 
 	var meta *FunMeta
@@ -76,6 +78,8 @@ func cmdDocs(args []string) {
 	}
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
+	loadOrCreateEdits(*editsPath)
+
 	metaJSON := renderMetaJSON(meta)
 
 	mux := http.NewServeMux()
@@ -88,6 +92,39 @@ func cmdDocs(args []string) {
 		case "/fun-meta.json":
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			w.Write(metaJSON)
+		case "/fun-docs-edits.json":
+			editsMu.RLock()
+			data, _ := json.Marshal(edits)
+			editsMu.RUnlock()
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write(data)
+		case "/fun-docs-edits":
+			if r.Method != http.MethodPost {
+				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+			var req struct {
+				Key   string          `json:"key"`
+				Entry json.RawMessage `json:"entry"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Key == "" {
+				http.Error(w, "bad request", http.StatusBadRequest)
+				return
+			}
+			editsMu.Lock()
+			if len(req.Entry) == 0 || string(req.Entry) == "null" {
+				delete(edits, req.Key)
+			} else {
+				edits[req.Key] = req.Entry
+			}
+			data, _ := json.MarshalIndent(edits, "", "  ")
+			editsMu.Unlock()
+			if err := os.WriteFile(*editsPath, data, 0o644); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(`{"ok":true}`))
 		default:
 			proxy.ServeHTTP(w, r)
 		}
@@ -110,14 +147,36 @@ func cmdDocs(args []string) {
   ─────────────────────────────────────────
   文档站:   http://%s
   后端代理: %s → %s
+  说明存档: %s
   ─────────────────────────────────────────
   %d 个服务 / %d 个方法。Ctrl+C 退出（连同自动拉起的后端）
-`, *addr, *upstream, *upstream, len(meta.Services), nMethods)
+`, *addr, *upstream, *upstream, *editsPath, len(meta.Services), nMethods)
 
 	if err := http.ListenAndServe(*addr, mux); err != nil {
 		fmt.Fprintln(os.Stderr, "fun: 文档站启动失败:", err)
 		killChild(backend, nil)
 		os.Exit(1)
+	}
+}
+
+// 说明/备注编辑存档：map[服务.方法] -> {note, fields:{路径:备注}}
+var (
+	editsMu sync.RWMutex
+	edits   = map[string]json.RawMessage{}
+)
+
+func loadOrCreateEdits(path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			os.WriteFile(path, []byte("{}\n"), 0o644)
+			return
+		}
+		fmt.Fprintln(os.Stderr, "fun: 读取编辑存档失败:", err)
+		return
+	}
+	if err := json.Unmarshal(data, &edits); err != nil {
+		fmt.Fprintln(os.Stderr, "fun: 编辑存档格式无效，按空处理:", err)
 	}
 }
 
