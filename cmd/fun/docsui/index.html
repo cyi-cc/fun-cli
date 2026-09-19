@@ -165,7 +165,7 @@ function showMethod(svc,m){
     ${m.dto?`
     <h2>请求参数<span class="sub">${esc(m.dto.name)}</span></h2>
     ${paramsTable(m.dto,[])}
-    <div class="note">带 <code>*</code> 为必填；指针/切片字段可留空省略；切片按 JSON 数组填写。字段名以小写开头随请求传输。</div>
+    <div class="note">带 <code>*</code> 为必填；可空字段留空即不发送；切片按 JSON 数组填写。字段名以小写开头随请求传输。</div>
     `:''}
 
     <h2>State<span class="sub">随请求携带 · Guard 可读 · 存于 localStorage</span></h2>
@@ -238,9 +238,7 @@ function hintFor(t){
   }
 }
 function controlHTML(t,id){
-  if(t.optional){
-    return `<div style="display:flex;gap:7px;align-items:center"><input type="checkbox" class="prov" data-for="${id}" title="勾选后提供该字段"><div style="flex:1" data-prov="${id}" data-dis>${innerControl(t,id)}</div></div>`;
-  }
+  // 可空字段与必填字段同样直接输入;留空即不随请求发送
   return innerControl(t,id);
 }
 function innerControl(t,id){
@@ -259,14 +257,6 @@ function innerControl(t,id){
 }
 const firstLower=s=>s?s[0].toLowerCase()+s.slice(1):s;
 
-// 指针字段勾选联动
-document.addEventListener('change',e=>{
-  if(e.target.classList&&e.target.classList.contains('prov')){
-    const wrap=document.querySelector(`[data-prov="${e.target.dataset.for}"]`);
-    if(wrap){const el=wrap.querySelector('input,textarea,select');if(el)el.disabled=!e.target.checked}
-  }
-});
-
 /* ---------- 取值 ---------- */
 function collectStruct(t,path,obj,errors){
   t.fields.forEach(f=>{
@@ -274,12 +264,6 @@ function collectStruct(t,path,obj,errors){
     const id='f-'+p.join('.');
     const key=firstLower(f.name);
     let el=document.getElementById(id);
-    let provided=true;
-    if(f.type.optional){
-      const cb=document.querySelector(`.prov[data-for="${id}"]`);
-      provided=cb&&cb.checked;
-    }
-    if(!provided)return;
     if(!el)return;
     const v=el.value!=null?el.value.trim():'';
     const kind=f.type.kind;
