@@ -82,7 +82,7 @@ func spawn(binPath string, args []string) (*exec.Cmd, chan struct{}) {
 	cmd := exec.Command(binPath, args...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	// 独立进程组：杀父进程时连带子进程（业务可能 fork 了 worker）
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setProcGroup(cmd)
 	done := make(chan struct{})
 	if err := cmd.Start(); err != nil {
 		fmt.Fprintln(os.Stderr, "fun: 启动失败:", err)
@@ -102,7 +102,7 @@ func killChild(child *exec.Cmd, done chan struct{}) {
 	if child == nil || child.Process == nil {
 		return
 	}
-	syscall.Kill(-child.Process.Pid, syscall.SIGTERM)
+	termProcGroup(child.Process.Pid)
 	if done == nil {
 		done = make(chan struct{})
 		go func() { child.Wait(); close(done) }()
@@ -110,7 +110,7 @@ func killChild(child *exec.Cmd, done chan struct{}) {
 	select {
 	case <-done:
 	case <-time.After(3 * time.Second):
-		syscall.Kill(-child.Process.Pid, syscall.SIGKILL)
+		killProcGroup(child.Process.Pid)
 	}
 }
 
